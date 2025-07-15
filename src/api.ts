@@ -2,7 +2,7 @@
 import axios from 'axios';
 
 const API = axios.create({
-  baseURL: 'http://localhost:3000', // cambia a tu dominio si haces deploy
+  baseURL: import.meta.env.VITE_API_URL,
 });
 
 export default API;
