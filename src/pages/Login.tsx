@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import API from '../api';
 import { useAuth } from '../context/AuthContext';
+import axios from 'axios';
 
 const Login = () => {
   const { login } = useAuth();
@@ -10,16 +11,29 @@ const Login = () => {
   const [password, setPassword] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      const res = await API.post('/auth/login', { username, password });
-      login(res.data.access_token, res.data.role); // guardar token y rol
-      navigate(`/${res.data.role}`); // redirecciona según rol
-    } catch (err) {
-      alert('Credenciales incorrectas');
-      console.error(err);
+  e.preventDefault();
+  try {
+    const response = await axios.post(`${import.meta.env.VITE_API_URL}/auth/login`, {
+      username,
+      password,
+    });
+
+    const { access_token, user } = response.data;
+
+    // Guardamos token y user en localStorage o contexto
+    localStorage.setItem('token', access_token);
+    localStorage.setItem('user', JSON.stringify(user));
+
+    // Redirigir según rol
+    if (user.role === 'admin') {
+      navigate('/admin');
+    } else {
+      navigate('/user');
     }
-  };
+  } catch (err) {
+    console.error('Error de login', err);
+  }
+ };
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-slate-100">

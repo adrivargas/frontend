@@ -1,58 +1,104 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import API from '../api';
+import axios from 'axios';
 
 const Register = () => {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
   const navigate = useNavigate();
 
-  const handleRegister = async (e: React.FormEvent) => {
+  const [form, setForm] = useState({
+    nombre: '',
+    correo: '',
+    celular: '',
+    username: '',
+    password: '',
+  });
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     try {
-      await API.post('/auth/register', {
-        username,
-        password,
-        role: 'user'  // Forzamos que sea un usuario normal
-      });
-
-      alert('✅ Registro exitoso. Inicia sesión.');
-      navigate('/login'); // o si quieres: navigate('/user') para ir directo
-    } catch (error) {
-      console.error('❌ Error al registrar:', error);
-      alert('Error al registrarse');
+      await axios.post(`${import.meta.env.VITE_API_URL}/auth/register`, form);
+      alert('Registro exitoso 🎉 Ahora puedes iniciar sesión');
+      navigate('/login');
+    } catch (err) {
+      console.error('Error al registrar', err);
+      alert('Hubo un error al registrarte');
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-yellow-100">
-      <form onSubmit={handleRegister} className="bg-white p-8 rounded shadow-md w-full max-w-sm">
-        <h2 className="text-2xl font-bold text-center text-red-600 mb-6">Registrarse</h2>
+    <div className="flex flex-col items-center justify-center min-h-screen bg-slate-100">
+      <form
+        onSubmit={handleSubmit}
+        className="bg-white p-6 rounded shadow-md w-96 space-y-4"
+      >
+        <h2 className="text-xl font-semibold text-center text-gray-700">Registro</h2>
 
         <input
           type="text"
-          placeholder="Usuario"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
+          name="nombre"
+          placeholder="Nombre completo"
+          className="w-full border p-2 rounded"
+          value={form.nombre}
+          onChange={handleChange}
           required
-          className="w-full p-2 mb-4 border rounded"
+        />
+
+        <input
+          type="email"
+          name="correo"
+          placeholder="Correo electrónico"
+          className="w-full border p-2 rounded"
+          value={form.correo}
+          onChange={handleChange}
+          required
+        />
+
+        <input
+          type="tel"
+          name="celular"
+          placeholder="Celular"
+          className="w-full border p-2 rounded"
+          value={form.celular}
+          onChange={handleChange}
+          required
+        />
+
+        <input
+          type="text"
+          name="username"
+          placeholder="Usuario"
+          className="w-full border p-2 rounded"
+          value={form.username}
+          onChange={handleChange}
+          required
         />
 
         <input
           type="password"
+          name="password"
           placeholder="Contraseña"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          className="w-full border p-2 rounded"
+          value={form.password}
+          onChange={handleChange}
           required
-          className="w-full p-2 mb-4 border rounded"
         />
 
-        <button type="submit" className="w-full bg-red-600 hover:bg-red-700 text-white py-2 rounded">
+        <button
+          type="submit"
+          className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700"
+        >
           Registrarse
         </button>
-        <p className="text-sm text-center text-gray-600">
-          ¿Ya tienes cuenta? <a href="/login" className="text-blue-600 hover:underline">Inicia sesión</a>
+
+        <p className="text-center text-sm text-gray-500">
+          ¿Ya tienes cuenta?{' '}
+          <a href="/login" className="text-green-600 hover:underline">
+            Inicia sesión
+          </a>
         </p>
       </form>
     </div>

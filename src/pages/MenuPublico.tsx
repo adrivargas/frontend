@@ -17,14 +17,21 @@ interface CartItem {
 function MenuPublico() {
   const [menu, setMenu] = useState<MenuItem[]>([]);
   const [cart, setCart] = useState<CartItem[]>([]);
+  const storedUser = localStorage.getItem('user');
+  const user = storedUser ? JSON.parse(storedUser) : null;
+
   const navigate = useNavigate();
   const { token, role } = useAuth();
 
   useEffect(() => {
     API.get('/menu-items')
-      .then((res) => setMenu(res.data))
+      .then((res) => {
+        console.log('📦 Menú recibido:', res.data);
+        setMenu(Array.isArray(res.data) ? res.data : []);
+      })
       .catch((err) => console.error('❌ Error al obtener el menú:', err));
   }, []);
+
 
   const addToCart = (item: MenuItem) => {
     setCart((prev) => {
@@ -49,80 +56,107 @@ function MenuPublico() {
   };
 
   const handleSubmitOrder = async () => {
-    try {
-      const order = {
-        items: cart,
-        tableId: 5,
-        statusId: 1,
-        userId: 3,
-        paymentId: 10,
-      };
+  if (!user) {
+    alert('Debes iniciar sesión para enviar un pedido.');
+    return;
+  }
 
-      const res = await API.post('/orders', order);
-      console.log('✅ Pedido enviado:', res.data);
-      alert('Pedido enviado exitosamente 🥳');
-      setCart([]);
-    } catch (error) {
-      console.error('❌ Error al enviar el pedido:', error);
-      alert('Error al enviar el pedido');
-    }
-  };
+  try {
+    const order = {
+      items: cart,
+      tableId: 5, // Puedes hacerlo dinámico si tienes selector
+      statusId: 1,
+      userId: user.id,
+      paymentId: 10,
+    };
+
+    const res = await API.post('/orders', order);
+    console.log('✅ Pedido enviado:', res.data);
+
+    setCart([]);
+    alert('🎉 ¡Pedido enviado con éxito!');
+  } catch (error) {
+    console.error('❌ Error al enviar el pedido:', error);
+    alert('Error al enviar el pedido');
+  }
+};
+
 
   return (
-    <div className="min-h-screen bg-yellow-50 p-6">
+    <div className="min-h-screen bg-gradient-to-b from-yellow-100 via-orange-50 to-yellow-100 p-6 font-sans">
+      {/* Header */}
       <div className="flex justify-between items-center mb-4">
-        <h1 className="text-3xl font-bold text-red-700">
-          La Casa de la Empanada Gigante 🥟
-        </h1>
-        {!token && (
-          <button
-            onClick={() => navigate('/login')}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
-          >
-            Iniciar Sesión
-          </button>
-        )}
-        {token && (
-          <span className="text-green-600 font-semibold">
-            Sesión iniciada como <span className="uppercase">{role}</span>
-          </span>
-        )}
+      <h1 className="text-3xl font-bold text-red-700">
+        La Casa de la Empanada Gigante 🥟
+      </h1>
+
+      {user ? (
+        <span className="text-green-700 font-semibold">
+          Hola, {user.nombre} 👋
+        </span>
+      ) : (
+        <button
+          onClick={() => navigate('/login')}
+          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
+        >
+          Iniciar Sesión
+        </button>
+      )}
       </div>
 
-      <div className="text-right mb-4 text-lg">
-        🛒 Pedido: <span className="font-bold">{cart.reduce((acc, item) => acc + item.quantity, 0)}</span> productos
+
+      {/* Pedido Count */}
+      <div className="text-right mb-4 text-lg font-medium text-gray-700">
+        🛒 Pedido: <span className="text-red-700 font-bold">{cart.reduce((acc, item) => acc + item.quantity, 0)}</span> productos
       </div>
 
-      <div className="mb-6">
+      {/* Carrito y Formulario */}
+      <div className="grid md:grid-cols-2 gap-6 mb-8">
         <Cart items={cart} onRemove={removeFromCart} />
-        <form className="bg-white p-4 rounded-md shadow-md space-y-3">
-          <input type="text" placeholder="Nombre del cliente" className="border p-2 rounded w-full" />
-          <input type="number" placeholder="Número de mesa" className="border p-2 rounded w-full" />
+        <form
+          onSubmit={handleSubmitOrder}
+          className="bg-white rounded-lg shadow-md p-6 space-y-4 border border-gray-200"
+        >
+          <h2 className="text-2xl font-semibold text-yellow-700 mb-2">📝 Confirmar Pedido</h2>
+          <input
+            type="text"
+            placeholder="Nombre del cliente"
+            className="border border-gray-300 p-3 rounded w-full focus:outline-none focus:ring-2 focus:ring-yellow-500"
+          />
+          <input
+            type="number"
+            placeholder="Número de mesa"
+            className="border border-gray-300 p-3 rounded w-full focus:outline-none focus:ring-2 focus:ring-yellow-500"
+          />
           <button
-            onClick={handleSubmitOrder}
-            className="mt-4 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md w-full"
+            type="submit"
+            className="w-full bg-green-600 text-white py-3 rounded hover:bg-green-700 transition shadow"
           >
-            Confirmar Pedido
+            ✅ Enviar Pedido
           </button>
         </form>
       </div>
 
+      {/* Menú */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
         {menu.map((item, index) => (
-          <div key={index} className="bg-white shadow-md p-4 rounded-xl border hover:shadow-xl transition-all">
-            <h2 className="text-xl font-bold text-red-600">{item.name}</h2>
+          <div
+            key={index}
+            className="bg-white border border-orange-100 p-6 rounded-xl shadow hover:shadow-lg transition-all duration-300"
+          >
+            <h2 className="text-2xl font-bold text-red-600 mb-3">{item.name}</h2>
             {item.sizes && (
-              <ul className="mt-2 text-gray-700 text-sm list-disc list-inside">
+              <ul className="list-disc list-inside text-gray-700 mb-4">
                 {item.sizes.map((size, i) => (
                   <li key={i}>{size}</li>
                 ))}
               </ul>
             )}
             <button
-              className="mt-4 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-md w-full"
+              className="w-full bg-red-600 hover:bg-red-700 text-white py-2 rounded-md transition"
               onClick={() => addToCart(item)}
             >
-              Agregar al pedido
+              ➕ Agregar al pedido
             </button>
           </div>
         ))}
