@@ -6,11 +6,13 @@ import Cart from '../components/Cart';
 
 interface MenuItem {
   name: string;
+  price: number;
   sizes?: string[];
 }
 
 interface CartItem {
   name: string;
+  price: number;
   quantity: number;
 }
 
@@ -34,16 +36,17 @@ function MenuPublico() {
 
 
   const addToCart = (item: MenuItem) => {
-    setCart((prev) => {
-      const found = prev.find((p) => p.name === item.name);
-      if (found) {
-        return prev.map((p) =>
-          p.name === item.name ? { ...p, quantity: p.quantity + 1 } : p
-        );
-      }
-      return [...prev, { name: item.name, quantity: 1 }];
-    });
-  };
+  setCart((prev) => {
+    const found = prev.find((p) => p.name === item.name);
+    if (found) {
+      return prev.map((p) =>
+        p.name === item.name ? { ...p, quantity: p.quantity + 1 } : p
+      );
+    }
+    return [...prev, { name: item.name, price: item.price, quantity: 1 }];
+  });
+};
+
 
   const removeFromCart = (name: string) => {
     setCart((prev) =>
@@ -104,11 +107,23 @@ function MenuPublico() {
       )}
       </div>
 
+      {user?.role === 'admin' && (
+        <button
+        onClick={() => navigate('/agregar-producto')}
+        className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded shadow-md transition"
+        >
+        ➕ Agregar nuevo producto
+        </button>
+      )}
+
+
 
       {/* Pedido Count */}
       <div className="text-right mb-4 text-lg font-medium text-gray-700">
         🛒 Pedido: <span className="text-red-700 font-bold">{cart.reduce((acc, item) => acc + item.quantity, 0)}</span> productos
       </div>
+
+      
 
       {/* Carrito y Formulario */}
       <div className="grid md:grid-cols-2 gap-6 mb-8">
@@ -138,29 +153,44 @@ function MenuPublico() {
       </div>
 
       {/* Menú */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-        {menu.map((item, index) => (
-          <div
-            key={index}
-            className="bg-white border border-orange-100 p-6 rounded-xl shadow hover:shadow-lg transition-all duration-300"
-          >
-            <h2 className="text-2xl font-bold text-red-600 mb-3">{item.name}</h2>
-            {item.sizes && (
-              <ul className="list-disc list-inside text-gray-700 mb-4">
-                {item.sizes.map((size, i) => (
-                  <li key={i}>{size}</li>
-                ))}
-              </ul>
-            )}
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
+    {menu.map((item, index) => (
+      <div key={index} className="card-flip h-64 rounded-xl shadow-xl">
+        <div className="card-inner w-full h-full">
+          {/* FRONT */}
+          <div className="card-front p-6 flex flex-col justify-between border border-orange-200">
+            <div>
+              <h2 className="text-2xl font-bold text-red-600 mb-2">{item.name}</h2>
+              {item.sizes && (
+                <ul className="text-gray-700 text-sm list-disc pl-4">
+                  {item.sizes.map((size, i) => (
+                    <li key={i}>{size}</li>
+                  ))}
+                </ul>
+              )}
+            </div>
+            <div className="text-lg font-semibold text-green-600 mt-2">
+              💰 ${item.price.toFixed(2)}
+            </div>
+          </div>
+
+          {/* BACK */}
+          <div className="card-back flex flex-col justify-center items-center text-center p-6 border border-yellow-300">
+            <p className="text-gray-800 text-sm mb-4">
+              Disfruta nuestras <strong>{item.name}</strong>, una delicia casera con sabor auténtico. 😋
+            </p>
             <button
-              className="w-full bg-red-600 hover:bg-red-700 text-white py-2 rounded-md transition"
+              className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded shadow"
               onClick={() => addToCart(item)}
             >
               ➕ Agregar al pedido
             </button>
+            </div>
+           </div>
           </div>
-        ))}
-      </div>
+         ))}
+       </div>
+
     </div>
   );
 }

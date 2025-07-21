@@ -7,6 +7,7 @@ import UserDashboard from './pages/UserDashboard';
 import MenuPublico from './pages/MenuPublico';
 import PrivateRoute from './routes/PrivateRoute';
 import Register from './pages/Register';
+import AgregarProducto from './pages/AgregarProducto';
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
         element={
           <PrivateRoute role="admin">
             <AdminDashboard />
+            <Route path="/agregar-producto" element={<AgregarProducto />} />
           </PrivateRoute>
         }
       />
@@ -27,6 +29,7 @@ function App() {
         element={
           <PrivateRoute role="user">
             <UserDashboard />
+            
           </PrivateRoute>
         }
       />
