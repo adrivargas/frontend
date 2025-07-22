@@ -4,11 +4,13 @@ import { useAuth } from '../context/AuthContext';
 import API from '../api';
 import UserOrderPanel from '../components/UserOrderPanel';
 
-interface MenuItem {
+export interface MenuItem {
+  _id: string;
   name: string;
-  price: number;
+  price: number | string;
   sizes?: string[];
 }
+
 
 function MenuPublico() {
   const [menu, setMenu] = useState<MenuItem[]>([]);
@@ -52,7 +54,7 @@ function MenuPublico() {
     {/* Panel completo si el usuario está logueado */}
     {user ? (
   <UserOrderPanel menu={menu} />
-   ) : (
+) : (
   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 mt-6">
     {menu.map((item, index) => (
       <div key={index} className="card-flip h-64 rounded-xl shadow-xl">

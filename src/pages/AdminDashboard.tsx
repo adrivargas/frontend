@@ -65,7 +65,7 @@ const AdminDashboard = () => {
 
   const handleMenuUpdate = async (id: number) => {
     try {
-      await API.put(`/menu-items/${id}`, editMenuForm);
+      await API.put(`/menu-items/${editingMenuId}`, editMenuForm);
       alert('Ítem actualizado');
       setEditingMenuId(null);
       fetchData();
