@@ -5,6 +5,14 @@ export default {
   ],
   theme: {
     extend: {
+      backgroundImage: {
+        'empanada-blur': "url('./src/assets/fondo-empanada.png')",
+      },
+      backdropBlur: {
+        sm: '4px',
+        md: '8px',
+        lg: '12px',
+      },
       colors: {
         empanada: {
           50: '#fff8e1',
@@ -12,13 +20,13 @@ export default {
           200: '#ffe082',
           300: '#ffd54f',
           400: '#ffca28',
-          500: '#ffc107', // principal (dorado)
+          500: '#ffc107',
           600: '#ffb300',
           700: '#ffa000',
           800: '#ff8f00',
           900: '#ff6f00',
         },
-        rojo: '#b71c1c', // para títulos
+        rojo: '#b71c1c',
         crema: '#fef6e4',
       },
       fontFamily: {
@@ -41,4 +49,4 @@ export default {
     },
   },
   plugins: [],
-};
+}

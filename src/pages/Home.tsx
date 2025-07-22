@@ -1,42 +1,34 @@
 import { useNavigate } from 'react-router-dom';
 
-export default function Home() {
+function Home() {
   const navigate = useNavigate();
 
   return (
-    <div className="relative min-h-screen bg-gradient-to-b from-yellow-100 to-orange-50 flex items-center justify-center text-center px-4">
-      {/* Imagen de fondo desenfocada */}
-      <img
-        src="/assets/fondo-empanada.jpg"
-        className="absolute inset-0 w-full h-full object-cover opacity-10 blur-sm"
-        alt="Fondo empanadas"
-      />
+    <div className="relative min-h-screen bg-empanada-blur bg-cover bg-center font-sans">
+      {/* Capa de difuminado encima del fondo */}
+      <div className="absolute inset-0 bg-white/40 backdrop-blur-sm z-0" />
 
       {/* Contenido principal */}
-      <div className="relative z-10 animate-fade-in-down">
-        <h1 className="text-4xl md:text-6xl font-extrabold text-red-700 mb-4 font-[Pacifico]">
-          Bienvenidos a La Casa de la Empanada Gigante 🥟
+      <div className="relative z-10 flex flex-col items-center justify-center text-center px-6 py-24 md:py-32">
+        <h1 className="text-4xl md:text-6xl font-extrabold text-rojo mb-6 drop-shadow-xl tracking-wide animate-fade-in-down">
+          Bienvenidos a <br className="block md:hidden" />
+          <span className="inline-block">La Casa de la Empanada Gigante 🥟</span>
         </h1>
-        <p className="text-lg md:text-xl text-gray-700 max-w-2xl mx-auto">
+
+        <p className="text-gray-800 text-lg md:text-xl max-w-3xl mb-8 leading-relaxed animate-fade-in-up">
           Donde cada bocado cuenta una historia. Disfruta nuestras empanadas artesanales,
           bebidas típicas y platos tradicionales ecuatorianos hechos con amor. ❤️
         </p>
 
-        <div className="mt-6">
-          <button
+        <button
             onClick={() => navigate('/menu')}
-            className="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition-transform transform hover:scale-105"
-          >
-            🍽️ Explorar Menú
-          </button>
-        </div>
-
-        {/* Opcional: Ilustración */}
-        <img
-          src="/assets/fondo-empanada.png"
-          className="w-64 mx-auto mt-8 animate-fade-in-up"
-        />
+            className="bg-rojo hover:bg-empanada-800 text-black px-8 py-3 rounded-full shadow-xl font-bold transition-all duration-300 transform hover:scale-105 hover:shadow-2xl"
+            >
+            📢 Explorar Menú
+        </button>
       </div>
     </div>
   );
 }
+
+export default Home;
