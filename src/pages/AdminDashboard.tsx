@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import API from '../api';
+import axios from 'axios';
 
 interface User {
   id: number;
@@ -20,11 +21,9 @@ const AdminDashboard = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [orders, setOrders] = useState([]);
   const [menu, setMenu] = useState<MenuItem[]>([]);
-
   const [editingUserId, setEditingUserId] = useState<number | null>(null);
-  const [editForm, setEditForm] = useState<Partial<User>>({});
-
   const [editingMenuId, setEditingMenuId] = useState<number | null>(null);
+  const [editForm, setEditForm] = useState<Partial<User>>({});
   const [editMenuForm, setEditMenuForm] = useState<Partial<MenuItem>>({});
 
   useEffect(() => {
@@ -59,6 +58,22 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleMenuEdit = (item: MenuItem) => {
+    setEditingMenuId(item.id);
+    setEditMenuForm({ name: item.name, price: item.price });
+  };
+
+  const handleMenuUpdate = async (id: number) => {
+    try {
+      await API.put(`/menu-items/${id}`, editMenuForm);
+      alert('Ítem actualizado');
+      setEditingMenuId(null);
+      fetchData();
+    } catch {
+      alert('Error al actualizar ítem');
+    }
+  };
+
   const renderContent = () => {
     switch (activeTab) {
       case 'usuarios':
@@ -90,25 +105,17 @@ const AdminDashboard = () => {
                       />
                       <select
                         value={editForm.role || 'user'}
-                        onChange={(e) =>
-                          setEditForm({ ...editForm, role: e.target.value as 'admin' | 'user' })
-                        }
+                        onChange={(e) => setEditForm({ ...editForm, role: e.target.value as 'admin' | 'user' })}
                         className="border p-1 rounded"
                       >
                         <option value="user">User</option>
                         <option value="admin">Admin</option>
                       </select>
                       <div className="flex gap-2 mt-1">
-                        <button
-                          className="bg-green-600 text-white px-2 py-1 rounded text-sm"
-                          onClick={handleUserUpdate}
-                        >
+                        <button className="bg-green-600 text-white px-2 py-1 rounded text-sm" onClick={handleUserUpdate}>
                           Guardar
                         </button>
-                        <button
-                          className="bg-gray-400 text-white px-2 py-1 rounded text-sm"
-                          onClick={() => setEditingUserId(null)}
-                        >
+                        <button className="bg-gray-400 text-white px-2 py-1 rounded text-sm" onClick={() => setEditingUserId(null)}>
                           Cancelar
                         </button>
                       </div>
@@ -166,9 +173,9 @@ const AdminDashboard = () => {
                       />
                       <input
                         type="number"
-                        value={editMenuForm.price || ''}
+                        value={editMenuForm.price?.toString() || ''}
                         onChange={(e) =>
-                          setEditMenuForm({ ...editMenuForm, price: parseFloat(e.target.value) })
+                          setEditMenuForm({ ...editMenuForm, price: parseFloat(e.target.value) || 0 })
                         }
                         className="border p-1 rounded"
                         placeholder="Precio"
@@ -176,16 +183,7 @@ const AdminDashboard = () => {
                       <div className="flex gap-2 mt-1">
                         <button
                           className="bg-green-600 text-white px-2 py-1 rounded text-sm"
-                          onClick={async () => {
-                            try {
-                              await API.put(`/menu-items/${item.id}`, editMenuForm);
-                              alert('Ítem de menú actualizado');
-                              setEditingMenuId(null);
-                              fetchData();
-                            } catch (err) {
-                              alert('Error al actualizar el ítem del menú');
-                            }
-                          }}
+                          onClick={() => handleMenuUpdate(item.id)}
                         >
                           Guardar
                         </button>
@@ -200,28 +198,20 @@ const AdminDashboard = () => {
                   ) : (
                     <>
                       <span>
-                        <strong>{item.name}</strong> - ${item.price.toFixed(2)}
+                        <strong>{item.name}</strong> - ${typeof item.price === 'number' ? item.price.toFixed(2) : '0.00'}
                       </span>
                       <div className="flex gap-2">
                         <button
-                          onClick={() => {
-                            setEditingMenuId(item.id);
-                            setEditMenuForm({ name: item.name, price: item.price });
-                          }}
+                          onClick={() => handleMenuEdit(item)}
                           className="bg-blue-600 text-white px-2 py-1 rounded text-sm"
                         >
                           Editar
                         </button>
                         <button
                           onClick={async () => {
-                            if (confirm(`¿Seguro que deseas eliminar "${item.name}"?`)) {
-                              try {
-                                await API.delete(`/menu-items/${item.id}`);
-                                alert('Ítem eliminado');
-                                fetchData();
-                              } catch {
-                                alert('Error al eliminar');
-                              }
+                            if (confirm(`¿Eliminar "${item.name}"?`)) {
+                              await API.delete(`/menu-items/${item.id}`);
+                              fetchData();
                             }
                           }}
                           className="bg-red-600 text-white px-2 py-1 rounded text-sm"
@@ -242,7 +232,6 @@ const AdminDashboard = () => {
   return (
     <div className="p-6">
       <h1 className="text-3xl font-bold mb-6 text-gray-800">Panel de Administrador</h1>
-
       <div className="flex space-x-4 mb-4">
         {['usuarios', 'ordenes', 'menu'].map((tab) => (
           <button
@@ -256,8 +245,7 @@ const AdminDashboard = () => {
           </button>
         ))}
       </div>
-
-      <div>{renderContent()}</div>
+      {renderContent()}
     </div>
   );
 };
