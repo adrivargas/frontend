@@ -126,31 +126,40 @@ function MenuPublico() {
       
 
       {/* Carrito y Formulario */}
-      <div className="grid md:grid-cols-2 gap-6 mb-8">
-        <Cart items={cart} onRemove={removeFromCart} />
-        <form
-          onSubmit={handleSubmitOrder}
-          className="bg-white rounded-lg shadow-md p-6 space-y-4 border border-gray-200"
+  {user?.role === 'user' ? (
+    <div className="grid md:grid-cols-2 gap-6 mb-8">
+      <Cart items={cart} onRemove={removeFromCart} />
+      <form
+        onSubmit={handleSubmitOrder}
+        className="bg-white rounded-lg shadow-md p-6 space-y-4 border border-gray-200"
+      >
+        <h2 className="text-2xl font-semibold text-yellow-700 mb-2">
+          📝 Confirmar Pedido
+        </h2>
+        <input
+          type="text"
+          placeholder="Nombre del cliente"
+          className="border border-gray-300 p-3 rounded w-full focus:outline-none focus:ring-2 focus:ring-yellow-500"
+        />
+        <input
+          type="number"
+          placeholder="Número de mesa"
+          className="border border-gray-300 p-3 rounded w-full focus:outline-none focus:ring-2 focus:ring-yellow-500"
+        />
+        <button
+          type="submit"
+          className="w-full bg-green-600 text-white py-3 rounded hover:bg-green-700 transition shadow"
         >
-          <h2 className="text-2xl font-semibold text-yellow-700 mb-2">📝 Confirmar Pedido</h2>
-          <input
-            type="text"
-            placeholder="Nombre del cliente"
-            className="border border-gray-300 p-3 rounded w-full focus:outline-none focus:ring-2 focus:ring-yellow-500"
-          />
-          <input
-            type="number"
-            placeholder="Número de mesa"
-            className="border border-gray-300 p-3 rounded w-full focus:outline-none focus:ring-2 focus:ring-yellow-500"
-          />
-          <button
-            type="submit"
-            className="w-full bg-green-600 text-white py-3 rounded hover:bg-green-700 transition shadow"
-          >
-            ✅ Enviar Pedido
-          </button>
-        </form>
-      </div>
+          ✅ Enviar Pedido
+        </button>
+      </form>
+    </div>
+      ) : (
+        <p className="text-center text-gray-500 text-sm mb-6">
+          Inicia sesión como <strong>usuario</strong> para realizar pedidos.
+        </p>
+      )}
+
 
       {/* Menú */}
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
@@ -170,8 +179,11 @@ function MenuPublico() {
               )}
             </div>
             <div className="text-lg font-semibold text-green-600 mt-2">
-              💰 ${item.price.toFixed(2)}
+              {typeof item.price === 'number'
+                ? <>💰 ${item.price.toFixed(2)}</>
+                : <span className="text-red-500">❌ Sin precio</span>}
             </div>
+
           </div>
 
           {/* BACK */}
