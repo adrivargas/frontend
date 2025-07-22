@@ -12,6 +12,7 @@ import PrivateRoute from './routes/PrivateRoute';
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
 import Contacto from './pages/Contacto';
+import Unauthorized from './pages/Unauthorized';
 
 function App() {
   return (
@@ -24,6 +25,7 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/menu" element={<MenuPublico />} />
         <Route path="/contacto" element={<Contacto />} />
+        <Route path="/unauthorized" element={<Unauthorized />} />
 
         <Route
           path="/admin"

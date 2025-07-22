@@ -14,32 +14,30 @@ const Login = () => {
   e.preventDefault();
   try {
     const response = await axios.post(`${import.meta.env.VITE_API_URL}/auth/login`, {
-     username,
-     password,
-   });
-
+      username,
+      password,
+    });
 
     const { access_token, user } = response.data;
 
-    // Guardamos token y user en localStorage o contexto
-    localStorage.setItem('token', access_token);
-    localStorage.setItem('user', JSON.stringify(user));
+    // ✅ Llamamos al login del contexto para actualizarlo correctamente
+    login(access_token, user.role, user);
 
-    // Redirigir según rol
+    // Redirigir según el rol
     if (user.role === 'admin') {
       navigate('/admin');
     } else {
       navigate('/user');
     }
   } catch (err) {
-  if (axios.isAxiosError(err) && err.response?.status === 401) {
-    alert('Usuario o contraseña incorrectos');
-  } else {
-    console.error('Error de login', err);
+    if (axios.isAxiosError(err) && err.response?.status === 401) {
+      alert('Usuario o contraseña incorrectos');
+    } else {
+      console.error('Error de login', err);
+    }
   }
-}
+};
 
- };
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-slate-100">
