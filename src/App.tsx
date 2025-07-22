@@ -9,15 +9,22 @@ import UserDashboard from './pages/UserDashboard';
 import AgregarProducto from './pages/AgregarProducto';
 
 import PrivateRoute from './routes/PrivateRoute';
+import Navbar from './components/Navbar';
+import Home from './pages/Home';
+import Contacto from './pages/Contacto';
 
 function App() {
   return (
     <AuthProvider>
+      <Navbar /> {/* Aparece en todas las páginas */}
+
       <Routes>
-        <Route path="/" element={<MenuPublico />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        
+        <Route path="/" element={<Home />} />
+        <Route path="/menu" element={<MenuPublico />} />
+        <Route path="/contacto" element={<Contacto />} />
+
         <Route
           path="/admin"
           element={
