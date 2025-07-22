@@ -1,12 +1,21 @@
-
 import { useEffect, useState } from 'react';
 import API from '../api';
 
+interface User {
+  id: number;
+  nombre: string;
+  username: string;
+  correo: string;
+  role: 'admin' | 'user';
+}
+
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState<'usuarios' | 'ordenes' | 'menu'>('usuarios');
-  const [users, setUsers] = useState([]);
+  const [users, setUsers] = useState<User[]>([]);
   const [orders, setOrders] = useState([]);
   const [menu, setMenu] = useState([]);
+  const [editingUserId, setEditingUserId] = useState<number | null>(null);
+  const [editForm, setEditForm] = useState<Partial<User>>({});
 
   useEffect(() => {
     fetchData();
@@ -23,21 +32,20 @@ const AdminDashboard = () => {
     setMenu(menuRes.data);
   };
 
-  const handlePriceUpdate = async (id: number, newPrice: number) => {
-    await API.put(`/menu-items/${id}`, { price: newPrice });
-    fetchData();
+  const handleUserEdit = (user: User) => {
+    setEditingUserId(user.id);
+    setEditForm(user);
   };
 
-  const handleDelete = async (id: number) => {
-    if (confirm('¿Estás seguro de que deseas eliminar este producto?')) {
-      try {
-        await API.delete(`/menu-items/${id}`);
-        alert('Producto eliminado');
-        fetchData();
-      } catch (err) {
-        console.error(err);
-        alert('Error al eliminar el producto');
-      }
+  const handleUserUpdate = async () => {
+    try {
+      await API.put(`/users/${editingUserId}`, editForm);
+      alert('Usuario actualizado');
+      setEditingUserId(null);
+      fetchData();
+    } catch (err) {
+      console.error(err);
+      alert('Error al actualizar usuario');
     }
   };
 
@@ -47,89 +55,99 @@ const AdminDashboard = () => {
         return (
           <div>
             <h2 className="text-xl font-semibold mb-2">Usuarios</h2>
-            <ul className="bg-gray-800 p-2 rounded space-y-1">
-              {users.map((user: any) => (
-                <li key={user.id}>
-                  {user.nombre} ({user.username}) - {user.role}
+            <ul className="bg-white border border-gray-300 p-4 rounded shadow space-y-2">
+              {users.map((user) => (
+                <li key={user.id} className="flex justify-between items-center text-gray-800">
+                  {editingUserId === user.id ? (
+                    <div className="w-full flex flex-col gap-1">
+                      <input
+                        value={editForm.nombre || ''}
+                        onChange={(e) => setEditForm({ ...editForm, nombre: e.target.value })}
+                        className="border p-1 rounded"
+                        placeholder="Nombre"
+                      />
+                      <input
+                        value={editForm.username || ''}
+                        onChange={(e) => setEditForm({ ...editForm, username: e.target.value })}
+                        className="border p-1 rounded"
+                        placeholder="Username"
+                      />
+                      <input
+                        value={editForm.correo || ''}
+                        onChange={(e) => setEditForm({ ...editForm, correo: e.target.value })}
+                        className="border p-1 rounded"
+                        placeholder="Correo"
+                      />
+                      <select
+                        value={editForm.role || 'user'}
+                        onChange={(e) => setEditForm({ ...editForm, role: e.target.value as 'admin' | 'user' })}
+                        className="border p-1 rounded"
+                      >
+                        <option value="user">User</option>
+                        <option value="admin">Admin</option>
+                      </select>
+                      <div className="flex gap-2 mt-1">
+                        <button
+                          className="bg-green-600 text-white px-2 py-1 rounded text-sm"
+                          onClick={handleUserUpdate}
+                        >
+                          Guardar
+                        </button>
+                        <button
+                          className="bg-gray-400 text-white px-2 py-1 rounded text-sm"
+                          onClick={() => setEditingUserId(null)}
+                        >
+                          Cancelar
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <span>
+                        <strong>{user.nombre}</strong> ({user.username}) -{' '}
+                        <span className={user.role === 'admin' ? 'text-red-600 font-bold' : 'text-gray-500'}>
+                          {user.role}
+                        </span>
+                      </span>
+                      <button
+                        onClick={() => handleUserEdit(user)}
+                        className="bg-blue-600 text-white px-2 py-1 rounded text-sm"
+                      >
+                        Editar
+                      </button>
+                    </>
+                  )}
                 </li>
               ))}
             </ul>
           </div>
         );
+
       case 'ordenes':
         return (
           <div>
             <h2 className="text-xl font-semibold mb-2">Órdenes</h2>
-            <ul className="bg-gray-800 p-2 rounded space-y-1">
+            <ul className="bg-white border border-gray-300 p-4 rounded shadow space-y-1">
               {orders.map((order: any) => (
-                <li key={order._id}>
-                  {order.clientName} - Total: ${order.total} - Estado: {order.status}
+                <li key={order._id} className="text-gray-800">
+                  {order.clientName} - Total: ${Number(order.total || 0).toFixed(2)} - Estado: {order.status}
                 </li>
               ))}
             </ul>
           </div>
         );
+
       case 'menu':
         return (
-          <div className="space-y-6">
-            <div>
-              <h2 className="text-xl font-semibold mb-2">Agregar nuevo producto</h2>
-              <form
-                className="bg-gray-800 p-4 rounded space-y-4"
-                onSubmit={async (e) => {
-                  e.preventDefault();
-                  const name = (e.currentTarget.elements.namedItem('name') as HTMLInputElement).value;
-                  const price = parseFloat((e.currentTarget.elements.namedItem('price') as HTMLInputElement).value);
-
-                  try {
-                    await API.post('/menu-items', { name, price });
-                    alert('Producto agregado exitosamente');
-                    fetchData();
-                    e.currentTarget.reset();
-                  } catch (err) {
-                    console.error(err);
-                    alert('Error al agregar producto');
-                  }
-                }}
-              >
-                <div>
-                  <label className="block mb-1">Nombre</label>
-                  <input name="name" className="w-full p-2 text-black rounded" required />
-                </div>
-                <div>
-                  <label className="block mb-1">Precio</label>
-                  <input name="price" type="number" step="0.01" className="w-full p-2 text-black rounded" required />
-                </div>
-                <button type="submit" className="bg-green-600 hover:bg-green-700 px-4 py-2 rounded mt-2">
-                  Agregar Producto
-                </button>
-              </form>
-            </div>
-
-            <div>
-              <h2 className="text-xl font-semibold mb-2">Editar productos</h2>
-              <ul className="bg-gray-800 p-2 rounded space-y-2">
-                {menu.map((item: any) => (
-                  <li key={item.id} className="flex justify-between items-center">
-                    <span>{item.name}</span>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="number"
-                        defaultValue={item.price}
-                        onBlur={(e) => handlePriceUpdate(item.id, parseFloat(e.target.value))}
-                        className="bg-white text-black rounded px-2 w-24"
-                      />
-                      <button
-                        onClick={() => handleDelete(item.id)}
-                        className="bg-red-600 hover:bg-red-700 px-2 py-1 rounded text-sm"
-                      >
-                        Eliminar
-                      </button>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </div>
+          <div>
+            <h2 className="text-xl font-semibold mb-2">Menú (pendiente implementar edición)</h2>
+            <ul className="bg-white border border-gray-300 p-4 rounded shadow space-y-1">
+              {menu.map((item: any) => (
+                <li key={item.id} className="text-gray-800">
+                  {item.name} - ${item.price?.toFixed(2) || '0.00'}
+                </li>
+              ))}
+            </ul>
           </div>
         );
     }
@@ -137,27 +155,20 @@ const AdminDashboard = () => {
 
   return (
     <div className="p-6">
-      <h1 className="text-3xl font-bold mb-6">Panel de Administrador</h1>
+      <h1 className="text-3xl font-bold mb-6 text-gray-800">Panel de Administrador</h1>
 
       <div className="flex space-x-4 mb-4">
-        <button
-          onClick={() => setActiveTab('usuarios')}
-          className={`px-4 py-2 rounded ${activeTab === 'usuarios' ? 'bg-blue-700' : 'bg-gray-700'}`}
-        >
-          Usuarios
-        </button>
-        <button
-          onClick={() => setActiveTab('ordenes')}
-          className={`px-4 py-2 rounded ${activeTab === 'ordenes' ? 'bg-blue-700' : 'bg-gray-700'}`}
-        >
-          Órdenes
-        </button>
-        <button
-          onClick={() => setActiveTab('menu')}
-          className={`px-4 py-2 rounded ${activeTab === 'menu' ? 'bg-blue-700' : 'bg-gray-700'}`}
-        >
-          Menú
-        </button>
+        {['usuarios', 'ordenes', 'menu'].map((tab) => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab as any)}
+            className={`px-4 py-2 rounded font-semibold transition ${
+              activeTab === tab ? 'bg-red-600 text-white shadow' : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
+            }`}
+          >
+            {tab[0].toUpperCase() + tab.slice(1)}
+          </button>
+        ))}
       </div>
 
       <div>{renderContent()}</div>
