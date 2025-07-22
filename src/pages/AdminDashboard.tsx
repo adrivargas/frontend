@@ -9,13 +9,23 @@ interface User {
   role: 'admin' | 'user';
 }
 
+interface MenuItem {
+  id: number;
+  name: string;
+  price: number;
+}
+
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState<'usuarios' | 'ordenes' | 'menu'>('usuarios');
   const [users, setUsers] = useState<User[]>([]);
   const [orders, setOrders] = useState([]);
-  const [menu, setMenu] = useState([]);
+  const [menu, setMenu] = useState<MenuItem[]>([]);
+
   const [editingUserId, setEditingUserId] = useState<number | null>(null);
   const [editForm, setEditForm] = useState<Partial<User>>({});
+
+  const [editingMenuId, setEditingMenuId] = useState<number | null>(null);
+  const [editMenuForm, setEditMenuForm] = useState<Partial<MenuItem>>({});
 
   useEffect(() => {
     fetchData();
@@ -80,7 +90,9 @@ const AdminDashboard = () => {
                       />
                       <select
                         value={editForm.role || 'user'}
-                        onChange={(e) => setEditForm({ ...editForm, role: e.target.value as 'admin' | 'user' })}
+                        onChange={(e) =>
+                          setEditForm({ ...editForm, role: e.target.value as 'admin' | 'user' })
+                        }
                         className="border p-1 rounded"
                       >
                         <option value="user">User</option>
@@ -140,11 +152,85 @@ const AdminDashboard = () => {
       case 'menu':
         return (
           <div>
-            <h2 className="text-xl font-semibold mb-2">Menú (pendiente implementar edición)</h2>
-            <ul className="bg-white border border-gray-300 p-4 rounded shadow space-y-1">
-              {menu.map((item: any) => (
-                <li key={item.id} className="text-gray-800">
-                  {item.name} - ${item.price?.toFixed(2) || '0.00'}
+            <h2 className="text-xl font-semibold mb-2">Menú</h2>
+            <ul className="bg-white border border-gray-300 p-4 rounded shadow space-y-2">
+              {menu.map((item) => (
+                <li key={item.id} className="text-gray-800 flex justify-between items-center">
+                  {editingMenuId === item.id ? (
+                    <div className="w-full flex flex-col gap-1">
+                      <input
+                        value={editMenuForm.name || ''}
+                        onChange={(e) => setEditMenuForm({ ...editMenuForm, name: e.target.value })}
+                        className="border p-1 rounded"
+                        placeholder="Nombre"
+                      />
+                      <input
+                        type="number"
+                        value={editMenuForm.price || ''}
+                        onChange={(e) =>
+                          setEditMenuForm({ ...editMenuForm, price: parseFloat(e.target.value) })
+                        }
+                        className="border p-1 rounded"
+                        placeholder="Precio"
+                      />
+                      <div className="flex gap-2 mt-1">
+                        <button
+                          className="bg-green-600 text-white px-2 py-1 rounded text-sm"
+                          onClick={async () => {
+                            try {
+                              await API.put(`/menu-items/${item.id}`, editMenuForm);
+                              alert('Ítem de menú actualizado');
+                              setEditingMenuId(null);
+                              fetchData();
+                            } catch (err) {
+                              alert('Error al actualizar el ítem del menú');
+                            }
+                          }}
+                        >
+                          Guardar
+                        </button>
+                        <button
+                          className="bg-gray-400 text-white px-2 py-1 rounded text-sm"
+                          onClick={() => setEditingMenuId(null)}
+                        >
+                          Cancelar
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <span>
+                        <strong>{item.name}</strong> - ${item.price.toFixed(2)}
+                      </span>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => {
+                            setEditingMenuId(item.id);
+                            setEditMenuForm({ name: item.name, price: item.price });
+                          }}
+                          className="bg-blue-600 text-white px-2 py-1 rounded text-sm"
+                        >
+                          Editar
+                        </button>
+                        <button
+                          onClick={async () => {
+                            if (confirm(`¿Seguro que deseas eliminar "${item.name}"?`)) {
+                              try {
+                                await API.delete(`/menu-items/${item.id}`);
+                                alert('Ítem eliminado');
+                                fetchData();
+                              } catch {
+                                alert('Error al eliminar');
+                              }
+                            }
+                          }}
+                          className="bg-red-600 text-white px-2 py-1 rounded text-sm"
+                        >
+                          Eliminar
+                        </button>
+                      </div>
+                    </>
+                  )}
                 </li>
               ))}
             </ul>
