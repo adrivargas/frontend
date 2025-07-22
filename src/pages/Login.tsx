@@ -32,8 +32,13 @@ const Login = () => {
       navigate('/user');
     }
   } catch (err) {
+  if (axios.isAxiosError(err) && err.response?.status === 401) {
+    alert('Usuario o contraseña incorrectos');
+  } else {
     console.error('Error de login', err);
   }
+}
+
  };
 
   return (
